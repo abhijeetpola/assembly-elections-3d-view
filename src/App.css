@@ -1,3 +1,115 @@
+/* ========================================
+   PROFESSIONAL IMMERSIVE UI LAYOUT
+   ======================================== */
+
+/* Full-screen app container */
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #000000; /* Deep black from studio environment */
+  overflow: hidden; /* Prevent scrollbars */
+}
+
+/* Minimalist header - 10% of screen height */
+.app-header {
+  flex: 0 0 10%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  background-color: rgba(0, 0, 0, 0.9); /* Semi-transparent black */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtle white border */
+  backdrop-filter: blur(10px); /* Modern glass effect */
+}
+
+/* Header title styling */
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Icon button styling */
+.icon-button {
+  background: none;
+  border: 1px solid #ffffff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.icon-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.icon-button:active {
+  transform: scale(0.95);
+}
+
+/* Canvas container - 90% of screen height */
+.canvas-container {
+  flex: 1;
+  position: relative;
+  background-color: #000000;
+}
+
+/* Assembly placeholder styling */
+.assembly-placeholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #ffffff;
+  text-align: center;
+  padding: 2rem;
+}
+
+.assembly-placeholder h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  font-weight: 300;
+}
+
+.assembly-placeholder p {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #cccccc;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+/* Feature list styling */
+.feature-list {
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.feature-list p {
+  font-size: 1rem;
+  margin: 0.5rem 0;
+  color: #00ff88; /* Green accent for checkmarks */
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+/* ========================================
+   LEGACY STYLES (KEPT FOR COMPATIBILITY)
+   ======================================== */
+
 .App {
   text-align: center;
 }
@@ -35,4 +147,33 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.view-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.test-button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.test-button:hover {
+  background-color: #45a049;
+}
+
+.main-content {
+  padding: 20px;
 }
