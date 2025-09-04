@@ -11,25 +11,13 @@ import { useEffect, useRef, useCallback } from 'react';
 import CameraControls from 'camera-controls';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
+import { POLAR_MIN, POLAR_MAX, AZIMUTH_MIN, AZIMUTH_MAX, MIN_DISTANCE, SOFT_FLOOR, SIDE_OFFSET, CLOSE_TOGGLE_DISTANCE, FOCUS_DISTANCE } from '../config/camera';
 
 CameraControls.install({ THREE });
 
-// CONFIG
-// Constrained orbit ranges (hybrid approach)
-// ~26° to ~66° polar keeps depth while avoiding extreme top-down or shallow flips
-const POLAR_MIN = 0.45;            // radians (~25.8°)
-const POLAR_MAX = 1.15;            // radians (~65.9°)
-// Azimuth limited to front hemisphere +/- ~105° to prevent swinging fully behind
-const AZIMUTH_MIN = -1.83;         // ~ -105°
-const AZIMUTH_MAX = 1.83;          // ~ +105°
-
-// Enhanced close-inspection behavior constants
-const MIN_DISTANCE = 0.5;          // absolute clamp (hard) how close camera center can get to target
-const SOFT_FLOOR = 0.6;            // threshold to begin protective lateral offset to avoid clipping face cards
-const SIDE_OFFSET = 0.12;          // meters to nudge sideways at soft floor for better parallax (world-space)
-const CLOSE_TOGGLE_DISTANCE = 5;   // below this distance we disable dollyToCursor to prevent jitter / drift
-const FOCUS_DISTANCE = 6;          // distance used when focusing a seat (double-click / refocus)
-
+/**
+ * @param {{ getSeatWorldMatrix: () => { matrices: import('three').Matrix4[] }|null, onReady?: (cc:any)=>void }} props
+ */
 export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) {
   const { camera, gl, scene, size } = useThree();
   const controlsRef = useRef(null);

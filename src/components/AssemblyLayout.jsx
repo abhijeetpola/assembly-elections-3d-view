@@ -1,6 +1,5 @@
 import React, { useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
-import { Billboard, Text } from '@react-three/drei';
 import { createMergedChairGeometries, WOOD_MATERIAL, FABRIC_MATERIAL } from './ParliamentChair/ParliamentChairBlueprint';
 // Removed SeatHolograms & single-seat prototype after full faces layer rollout
 import SeatFacesLayer from './SeatFacesLayer'; // Multi-seat faces layer
@@ -38,7 +37,7 @@ import LeaderPillar from './LeaderPillar';
  *   to avoid confusion.
  * ---------------------------------------------------------------------------
  */
-function AssemblyLayout({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc = '/images/leader.png', onSeatMatricesReady }) {
+function AssemblyLayout({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc = '/images/leader.png', onSeatMatricesReady, expandedSeat = null, onRequestExpand }) {
   const ROWS_50 = [8, 9, 10, 11, 12];
   const ROWS_CENTER_LEFT = [3, 4, 4, 5, 5];
   const ROWS_CENTER_RIGHT = [4, 4, 5, 5, 4];
@@ -63,7 +62,6 @@ function AssemblyLayout({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc =
   const SEAT_EDGE_MARGIN_LINEAR = 0.05; // tiny clearance for chair vs aisle
   const CHAIR_BACK_OFFSET = 0.7;
   const CHAIR_ELEVATION_STEP = 0.4;
-  const SHOW_SEAT_MARKERS = true; // toggle to show/hide red dot + number
 
   // Uniform walkway targets (linear world units)
   const WALKWAY_LINEAR_OUTER = 2.2; // recommended
@@ -79,12 +77,13 @@ function AssemblyLayout({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc =
   const ang5 = ang4 + OUTER_GAP_DEG;
   const ang6 = ang5 + OUTER_GAP_DEG;
 
-  const { benches, woodMatrices, fabricMatrices, seatMarkers } = useMemo(() => {
+  const { benches, woodMatrices, fabricMatrices } = useMemo(() => {
     const benchElems = [];
     const wood = [];
     const fabric = [];
-    const markers = [];
-    let markerSeq = 1;
+  // markerSeq (commented): sequential seat numbering counter formerly used for rendering
+  // numeric overlays above seats. Restore by uncommenting and increment within pushRow.
+  // let markerSeq = 1;
 
     const centerAnglesDeg = [ang1, ang2, ang3, ang4, ang5, ang6];
     const centerAnglesRad = centerAnglesDeg.map(d => (d * Math.PI) / 180);
@@ -244,23 +243,8 @@ function AssemblyLayout({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc =
         const yaw = Math.atan2(SPEAKER_TARGET.x - x, SPEAKER_TARGET.z - z);
         const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, 0));
         const m = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), q, new THREE.Vector3(1, 1, 1));
-        wood.push(m.clone());
-        fabric.push(m.clone());
-  if (SHOW_SEAT_MARKERS) {
-          const label = `${markerSeq}`;
-          markers.push(
-            <group key={`mk-${keyPrefix}-${i}`} position={[x, y + 0.8, z]}>
-              <mesh position={[0, -0.1, 0]}>
-                <sphereGeometry args={[0.07, 10, 10]} />
-                <meshBasicMaterial color={0xff0000} />
-              </mesh>
-              <Billboard>
-                <Text fontSize={0.5} color="#ff0000" anchorX="center" anchorY="middle">{label}</Text>
-              </Billboard>
-            </group>
-          );
-          markerSeq += 1;
-        }
+  wood.push(m.clone());
+  fabric.push(m.clone());
       }
     };
 
@@ -286,7 +270,7 @@ function AssemblyLayout({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc =
       // ignore
     }
 
-    return { benches: benchElems, woodMatrices: wood, fabricMatrices: fabric, seatMarkers: markers };
+  return { benches: benchElems, woodMatrices: wood, fabricMatrices: fabric };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -328,6 +312,8 @@ function AssemblyLayout({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc =
           imageSources={['/images/leader.png','/images/leader2.png','/images/leader3.png','/images/leader4.png','/images/leader5.png']}
           randomize
           seed={20250904}
+          expandedSeat={expandedSeat}
+          onFaceClick={(idx, meta) => { if (onRequestExpand) onRequestExpand(idx, meta); }}
         />
       )}
   {leaderMatrix && (
@@ -337,7 +323,6 @@ function AssemblyLayout({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc =
       faceSrc={leaderFaceSrc}
     />
   )}
-      {SHOW_SEAT_MARKERS && seatMarkers}
     </group>
   );
 }

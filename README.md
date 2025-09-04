@@ -67,6 +67,11 @@ The 3D visualization uses a custom semi-circular layout designed for 243 seats. 
 - **243-Seat Assembly**: Complete legislative chamber visualization
 - **Professional Studio Environment**: High-quality lighting and shadows
 - **Responsive Design**: Optimized for various screen sizes
+- **Interactive Leader Detail Overlay**: Click (tap release without drag) on any seat face card to trigger a shared‑element style transition from its 3D position into a glass dialog with leader info. Dragging instead of releasing cancels the click (prevents accidental opens while orbiting). Overlay supports:
+   * Shared element animation using projected screen rectangle
+   * Escape key to close + backdrop click
+   * Initial keyboard focus on close control (accessibility)
+   * Future extensibility: constituency, dynamic stats
 
 ## Technology Stack
 
@@ -80,17 +85,21 @@ The 3D visualization uses a custom semi-circular layout designed for 243 seats. 
 ### Development Workflow (Recommended)
 **Note**: The `npm start` command is known to hang on this system. Use the build-and-serve approach instead.
 
+### Requirements
+* Node.js 20.x (project enforces via `.nvmrc` & `engines`)
+* npm 10+
+
 1. **Install dependencies:**
    ```bash
    npm install
    ```
 
-2. **Build the project:**
+2. **Build the project (CI treats warnings as errors):**
    ```bash
    npm run build
    ```
 
-3. **Serve the production build:**
+3. **Serve the production build (preview mode):**
    ```bash
    npx serve -s build -l 3001
    ```
@@ -103,6 +112,23 @@ If you prefer to try the development server:
 npm start
 ```
 **Warning**: This may hang and require manual termination.
+
+### Camera Presets & Close Zoom
+The default view auto-applies the Gallery preset (elevated oblique). A Speaker POV preset frames from the dais. Close zoom behavior includes:
+* min distance 0.5m with soft floor stabilization at 0.6m
+* lateral offset when extremely close to avoid clipping hologram face cards
+* dynamic toggle of dolly-to-cursor below distance 5 to prevent jitter
+* double-click a seat to focus (focus distance 6m) / press `f` to re-focus / `Esc` to reset
+
+### Scripts
+```bash
+npm run lint      # eslint check
+npm run format    # prettier write
+npm test          # jest tests (includes seat matrix count regression)
+```
+
+### Testing
+A lightweight regression test asserts we always produce 243 seat matrices. Extend this with per-spoke distribution if refactors occur.
 
 ## 🏗️ Project Structure
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import EnhancedCameraControls from './components/EnhancedCameraControls';
@@ -7,6 +7,7 @@ import StudioEnvironment from './components/StudioEnvironment';
 import SpeakerDais from './components/SpeakerDais';
 import AssemblyLayout from './components/AssemblyLayout';
 import ResultsLegend from './components/ResultsLegend';
+import LeaderDetailOverlay from './components/LeaderDetailOverlay';
 import SpeakerChairIcon from './components/icons/SpeakerChairIcon';
 import TimelineBar from './components/TimelineBar'; // Time seek bar
 import timeline from './data/electionTimeline.json';
@@ -20,6 +21,7 @@ function App() {
 
   const seatMap = useMemo(() => SEAT_BLOCKS, []);
 
+  const shadeCache = useRef(new Map());
   const seatHexColors = useMemo(() => {
     const snap = timeline[currentIndex];
     const seatCount = TOTAL_SEATS;
@@ -31,7 +33,12 @@ function App() {
       const data = counts[id];
       if (!data) continue;
       const { wins, leads } = data;
-      const leadShade = lighterShade(color, 0.65);
+      const cacheKey = color + '|0.65';
+      let leadShade = shadeCache.current.get(cacheKey);
+      if (!leadShade) {
+        leadShade = lighterShade(color, 0.65);
+        shadeCache.current.set(cacheKey, leadShade);
+      }
       for (let i = 0; i < block.length; i += 1) {
         const seatIdx = block[i];
         if (i < wins) seatColorHex[seatIdx] = color;
@@ -46,6 +53,8 @@ function App() {
   const [sphere, setSphere] = useState(null);
   const [camControls, setCamControls] = useState(null);
   const [activePreset, setActivePreset] = useState(null);
+  const [expandedSeat, setExpandedSeat] = useState(null); // seat index currently expanded (only 0 prototype)
+  const [expandedMeta, setExpandedMeta] = useState(null); // { imageSrc, partyColor }
 
   const computeSphere = (mats) => {
     if (!mats || !mats.length) return null;
@@ -153,12 +162,24 @@ function App() {
             {/* Seat / benches assembly (takes computed per-seat colors for wins/leads) */}
             {/* Vertical offset wrapper to nudge assembly upward visually */}
             <group position={[0,5,0]}>
-              <AssemblyLayout seatHexColors={seatHexColors} onSeatMatricesReady={(mats) => { setSeatMatrices(mats); const sp = computeSphere(mats); setSphere(sp); }} />
+              <AssemblyLayout
+                seatHexColors={seatHexColors}
+                onSeatMatricesReady={(mats) => { setSeatMatrices(mats); const sp = computeSphere(mats); setSphere(sp); }}
+                expandedSeat={expandedSeat}
+                onRequestExpand={(idx, meta) => { setExpandedSeat(idx); setExpandedMeta(meta); }}
+              />
             </group>
           </Canvas>
           {/* Timeline UI overlay (HTML) */}
           <TimelineBar timeline={timeline} currentIndex={currentIndex} onChange={setCurrentIndex} />
           <ResultsLegend currentIndex={currentIndex} timeline={timeline} />
+          {expandedSeat != null && (
+            <LeaderDetailOverlay
+              onClose={() => { setExpandedSeat(null); setExpandedMeta(null); }}
+              imageSrc={expandedMeta?.imageSrc}
+              partyColor={expandedMeta?.partyColor}
+            />
+          )}
       </div>
 
     </div>

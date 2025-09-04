@@ -25,6 +25,8 @@
   "deploy:preview": "netlify deploy --build --message=preview --dir=build",
   "deploy:prod": "netlify deploy --build --prod --message=production --dir=build",
   "validate:seats": "node scripts/validateSeatLogic.js",
+  "lint": "eslint src --ext .js,.jsx",
+  "format": "prettier --write \"src/**/*.{js,jsx,css}\"",
   "postinstall": "node scripts/fixMediapipeSourceMap.js || true"
   },
   "eslintConfig": {
