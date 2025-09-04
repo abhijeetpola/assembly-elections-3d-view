@@ -17,11 +17,13 @@
   flex: 0 0 10%;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 0 2rem;
-  background-color: rgba(0, 0, 0, 0.9); /* Semi-transparent black */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtle white border */
-  backdrop-filter: blur(10px); /* Modern glass effect */
+  align-items: flex-end; /* anchor title baseline */
+  padding: 0 1.25rem 0.35rem 1.25rem; /* tighter side padding, slight bottom spacing */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.78) 55%, rgba(0,0,0,0.0) 100%); /* smooth fade into scene */
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  position: relative;
+  z-index: 5;
 }
 
 /* Header title styling */
@@ -31,6 +33,8 @@
   color: #ffffff;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  letter-spacing: 0.5px;
+  text-align: left; /* ensure left alignment */
 }
 
 /* Icon button styling */
@@ -64,6 +68,42 @@
   flex: 1;
   position: relative;
   background-color: #000000;
+}
+
+/* Default (desktop) timeline positioning */
+.timeline-bar {
+/* (Reverted) */
+  position: absolute;
+  bottom: 18px; /* more gap from bottom */
+  left: 22px;
+  right: 22px;
+  color: #dcdcdc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 11px;
+  pointer-events: auto;
+  transition: bottom 0.25s ease;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 20px;
+  padding: 6px 14px 10px;
+  box-shadow: 0 6px 26px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.timeline-bar .live-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff2d2d;
+  box-shadow: 0 0 6px #ff2d2d, 0 0 12px rgba(255,45,45,0.5);
+  animation: pulseLive 1.6s infinite ease-in-out;
+}
+
+@keyframes pulseLive {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.65; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 /* Assembly placeholder styling */
@@ -177,3 +217,186 @@
 .main-content {
   padding: 20px;
 }
+
+/* ========================================
+   MOBILE RESPONSIVE STYLES FOR TIMELINEBAR
+   ======================================== */
+
+/* Mobile styles for TimelineBar component */
+@media (max-width: 768px) {
+  /* Make timeline bar more mobile-friendly */
+  .timeline-bar {
+    position: fixed !important;
+    bottom: 14px !important; /* lifted */
+    left: 14px !important;
+    right: 14px !important;
+    padding: 8px 14px 12px !important;
+    background: rgba(25,25,28,0.55) !important;
+    border-radius: 22px !important;
+    backdrop-filter: blur(24px) saturate(170%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(170%) !important;
+    z-index: 1000 !important;
+    box-shadow: 0 5px 24px -4px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.07) !important;
+  }
+  
+  /* Mobile slider (thinner track + smaller thumb) */
+  .timeline-bar input[type="range"] {
+    --timeline-track-height: 6px; /* visual thickness */
+    --timeline-thumb-size: clamp(14px, 4.5vw, 18px);
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 100% !important;
+    height: var(--timeline-track-height) !important; /* track height */
+    background: linear-gradient(90deg, rgba(255,255,255,0.34), rgba(255,255,255,0.18)) !important;
+    border-radius: 4px !important;
+    outline: none !important;
+    cursor: pointer !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10), 0 2px 5px rgba(0,0,0,0.38) !important;
+    position: relative !important;
+  }
+  .timeline-bar input[type="range"]::-webkit-slider-runnable-track { height: var(--timeline-track-height) !important; background: none !important; border-radius: 4px !important; }
+  .timeline-bar input[type="range"]::-moz-range-track { height: var(--timeline-track-height) !important; background: none !important; border-radius: 4px !important; }
+  
+  /* Custom slider thumb for mobile (centered) */
+  .timeline-bar input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: var(--timeline-thumb-size) !important;
+    height: var(--timeline-thumb-size) !important;
+    background: radial-gradient(circle at 36% 32%, #ffffff, #dcdcdc) !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.45) !important;
+    border: 1px solid rgba(255,255,255,0.70) !important;
+    margin-top: calc((var(--timeline-track-height) - var(--timeline-thumb-size)) / 2) !important; /* center thumb */
+  }
+  .timeline-bar input[type="range"]::-moz-range-thumb {
+    width: var(--timeline-thumb-size) !important;
+    height: var(--timeline-thumb-size) !important;
+    background: radial-gradient(circle at 36% 32%, #ffffff, #dcdcdc) !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    border: 1px solid rgba(255,255,255,0.70) !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.45) !important;
+  }
+  
+  /* Larger LIVE indicator for mobile */
+  .timeline-bar .live-indicator {
+    font-size: 16px !important;
+    padding: 10px 16px !important; /* More padding for better touch */
+    border-radius: 25px !important;
+    background: rgba(255, 45, 45, 0.25) !important; /* Slightly more visible */
+    border: 2px solid rgba(255, 45, 45, 0.7) !important; /* Stronger border */
+    box-shadow: 0 2px 8px rgba(255, 45, 45, 0.3) !important; /* Glow effect */
+  }
+  
+  .timeline-bar .live-indicator span:first-child {
+    width: 14px !important; /* Larger pulsing dot */
+    height: 14px !important;
+    animation: pulse 2s infinite !important; /* Add pulsing animation */
+  }
+  
+  /* Better spacing for mobile */
+  .timeline-bar .time-labels {
+    margin-top: 12px !important;
+    gap: 8px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+  
+  .timeline-bar .time-labels > div {
+    font-size: 14px !important;
+    min-width: 40px !important;
+    padding: 6px 8px !important; /* More padding for touch */
+    border-radius: 4px !important;
+    transition: all 0.2s ease !important; /* Smooth transitions */
+  }
+  
+  /* Add pulsing animation for LIVE dot */
+  @keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+  .timeline-bar {
+  bottom: 10px !important;
+    left: 10px !important;
+    right: 10px !important;
+  padding: 10px 12px 14px !important;
+    z-index: 1000 !important; /* Ensure visibility */
+  }
+  
+  .timeline-bar input[type="range"] { --timeline-track-height: 6px; --timeline-thumb-size: clamp(16px, 6vw, 20px); }
+  .timeline-bar input[type="range"]::-webkit-slider-thumb { margin-top: calc((var(--timeline-track-height) - var(--timeline-thumb-size)) / 2) !important; }
+  
+  .timeline-bar .live-indicator {
+    font-size: 14px !important;
+    padding: 8px 12px !important; /* Better touch target */
+  }
+  
+  .timeline-bar .time-labels > div {
+    font-size: 12px !important;
+    min-width: 36px !important;
+    padding: 4px 6px !important; /* Adjusted padding */
+  }
+}
+
+/* Landscape mobile orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+  .timeline-bar {
+    bottom: 10px !important;
+    padding: 10px 15px !important;
+    z-index: 1000 !important; /* Ensure visibility in landscape */
+  }
+  
+  .timeline-bar .time-labels {
+    margin-top: 8px !important;
+  }
+  
+  /* Adjust for landscape mode */
+  .timeline-bar input[type="range"] {
+    height: 10px !important; /* Slightly smaller in landscape */
+  }
+  
+  .timeline-bar input[type="range"]::-webkit-slider-thumb {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  .timeline-bar input[type="range"]::-moz-range-thumb {
+    width: 24px !important;
+    height: 24px !important;
+  }
+}
+
+/* Global font + camera preset buttons */
+body, .app-container, .timeline-bar, .header-title, .legend, button, input, select, .cam-icon-btn {
+  font-family: 'Rethink Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.cam-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.30), rgba(255,255,255,0.10)), rgba(255,255,255,0.08);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  transition: all 0.25s ease;
+}
+.cam-icon-btn:hover { box-shadow: 0 6px 22px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.35); transform: translateY(-2px); }
+.cam-icon-btn:active { transform: translateY(1px) scale(0.95); }
+.cam-icon-btn.active { border-color: rgba(255,255,255,0.65); box-shadow: 0 0 0 2px rgba(255,255,255,0.25), 0 8px 28px rgba(0,0,0,0.55); }

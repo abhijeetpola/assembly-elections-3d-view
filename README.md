@@ -1,3 +1,30 @@
+## Election Timeline Visualization (Prototype)
+
+Non‑technical summary: This app shows the Bihar Assembly seating in 3D. As you move the time slider, seat holograms recolor to show which alliance is currently winning (solid color) or only leading (lighter shade). Everything is pre‑computed locally; no live data feed yet.
+
+Added features (prototype stage):
+
+* Hologram occupants above each of the 243 seats (instanced meshes) now recolor by alliance as you scrub the timeline (10:00–15:00, 30‑min steps).
+* Color mapping: each alliance owns pre-defined seat blocks (static). For each snapshot: first N wins seats get the solid alliance color, next M leads seats get a lighter shade, remainder neutral gray.
+* LIVE state = last snapshot.
+* Legend (top-right) shows per-alliance wins (W) and leads (L) counts for current snapshot.
+
+Implementation notes (plain language):
+* Current hologram coloring groups seats by hex color (one InstancedMesh per distinct shade) to avoid driver inconsistencies with per-instance vertex color buffers.
+* Seat indices are zero-based internally; visible numbering (markers) is 1..243.
+* Data source: `src/data/electionTimeline.json` (placeholder sample counts).
+
+Planned improvements (next candidates):
+* Smooth fade transitions between snapshots.
+* Dynamic allocation or carving out block for OTHERS once distribution strategy decided.
+* Accessibility: optional high-contrast / daltonism-friendly palette.
+* Performance benchmarking and potential merge of color groups if palette expands.
+
+Housekeeping already done:
+* Removed deprecated `SeatStateContext` (replaced by direct prop + grouped instancing approach).
+* Simplified props (`AssemblyLayout` no longer receives unused float color buffer).
+* Added concise legend component `ResultsLegend.jsx`.
+* Silenced noisy build warnings (removed dev logs + pinned dependency to avoid Node engine warning). Source-map missing file warning from a third-party library is non-impacting and ignored.
 # Bihar Legislative Assembly 3D Visualization
 
 A React-based 3D visualization of the Bihar Legislative Assembly using Three.js and React Three Fiber. This project represents a complete, production-ready 3D legislative chamber with 243 seats arranged in a sophisticated 5-Spoke Radial Arc layout.

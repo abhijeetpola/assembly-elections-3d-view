@@ -9,6 +9,7 @@
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+  "camera-controls": "^2.7.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-scripts": "5.0.1",
@@ -20,7 +21,11 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "preview": "npx serve -s build -l 3001 --no-clipboard"
+  "preview": "npx serve -s build -l 3001 --no-clipboard",
+  "deploy:preview": "netlify deploy --build --message=preview --dir=build",
+  "deploy:prod": "netlify deploy --build --prod --message=production --dir=build",
+  "validate:seats": "node scripts/validateSeatLogic.js",
+  "postinstall": "node scripts/fixMediapipeSourceMap.js || true"
   },
   "eslintConfig": {
     "extends": [
@@ -42,6 +47,8 @@
   }
   ,
   "devDependencies": {
-    "serve": "^14.2.1"
+    "serve": "^14.2.1",
+    "netlify-cli": "^17.0.0"
   }
+  
 }

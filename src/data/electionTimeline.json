@@ -1,0 +1,13 @@
+[
+  { "time": "10:00", "alliances": [ { "id": "NDA", "leads": 5, "wins": 0 }, { "id": "INDIA", "leads": 4, "wins": 0 }, { "id": "OTHERS", "leads": 0, "wins": 0 } ] },
+  { "time": "10:30", "alliances": [ { "id": "NDA", "leads": 25, "wins": 2 }, { "id": "INDIA", "leads": 20, "wins": 1 }, { "id": "OTHERS", "leads": 2, "wins": 0 } ] },
+  { "time": "11:00", "alliances": [ { "id": "NDA", "leads": 45, "wins": 5 }, { "id": "INDIA", "leads": 40, "wins": 3 }, { "id": "OTHERS", "leads": 4, "wins": 0 } ] },
+  { "time": "11:30", "alliances": [ { "id": "NDA", "leads": 60, "wins": 10 }, { "id": "INDIA", "leads": 55, "wins": 6 }, { "id": "OTHERS", "leads": 6, "wins": 1 } ] },
+  { "time": "12:00", "alliances": [ { "id": "NDA", "leads": 80, "wins": 20 }, { "id": "INDIA", "leads": 70, "wins": 12 }, { "id": "OTHERS", "leads": 8, "wins": 2 } ] },
+  { "time": "12:30", "alliances": [ { "id": "NDA", "leads": 95, "wins": 35 }, { "id": "INDIA", "leads": 85, "wins": 22 }, { "id": "OTHERS", "leads": 10, "wins": 3 } ] },
+  { "time": "13:00", "alliances": [ { "id": "NDA", "leads": 100, "wins": 50 }, { "id": "INDIA", "leads": 90, "wins": 35 }, { "id": "OTHERS", "leads": 11, "wins": 5 } ] },
+  { "time": "13:30", "alliances": [ { "id": "NDA", "leads": 90, "wins": 65 }, { "id": "INDIA", "leads": 75, "wins": 50 }, { "id": "OTHERS", "leads": 8, "wins": 7 } ] },
+  { "time": "14:00", "alliances": [ { "id": "NDA", "leads": 60, "wins": 85 }, { "id": "INDIA", "leads": 40, "wins": 70 }, { "id": "OTHERS", "leads": 5, "wins": 8 } ] },
+  { "time": "14:30", "alliances": [ { "id": "NDA", "leads": 30, "wins": 100 }, { "id": "INDIA", "leads": 20, "wins": 85 }, { "id": "OTHERS", "leads": 2, "wins": 10 } ] },
+  { "time": "15:00", "alliances": [ { "id": "NDA", "leads": 0, "wins": 125 }, { "id": "INDIA", "leads": 0, "wins": 105 }, { "id": "OTHERS", "leads": 0, "wins": 13 } ] }
+]

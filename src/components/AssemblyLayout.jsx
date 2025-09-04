@@ -2,8 +2,43 @@ import React, { useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { Billboard, Text } from '@react-three/drei';
 import { createMergedChairGeometries, WOOD_MATERIAL, FABRIC_MATERIAL } from './ParliamentChair/ParliamentChairBlueprint';
+// Removed SeatHolograms & single-seat prototype after full faces layer rollout
+import SeatFacesLayer from './SeatFacesLayer'; // Multi-seat faces layer
+import LeaderPillar from './LeaderPillar';
 
-function AssemblyLayout() {
+/**
+ * AssemblyLayout
+ * ---------------------------------------------------------------------------
+ * RESPONSIBILITY (Plain English for PMs):
+ *   Places all 243 Bihar Assembly seats in 6 logical arcs (internally referred
+ *   to here as spokes S1,S2,C-R (central right half), C-L (central left half),
+ *   S5,S6). The order in which we PUSH seats (and therefore the global seat
+ *   indices used elsewhere) is:
+ *     0–49   : Spoke S1  (50 seats)
+ *     50–99  : Spoke S2  (50 seats)
+ *     100–121: Central Right (22 seats)  -> NDA block per current strategy
+ *     122–142: Central Left  (21 seats)  -> INDIA block continuation
+ *     143–192: Spoke S5  (50 seats)
+ *     193–242: Spoke S6  (50 seats)
+ *   This EXACT ordering is depended on by `seatBlocks.js` when allocating
+ *   seat indices to alliances. If layout push order ever changes, that mapping
+ *   must be updated in sync.
+ *
+ * PERFORMANCE NOTES:
+ *   - All chair instances share two merged geometries (wood + fabric) so only
+ *     TWO draw calls render all seats (plus benches & holograms).
+ *   - Benches and seat transforms are computed once (empty dependency array).
+ *
+ * EXTERNAL INPUTS:
+ *   seatHexColors[] : (optional) array of per-seat hex colors (wins / leads)
+ *   leaderSeatIndex : (optional) index of seat to show leader pillar above
+ *   leaderFaceSrc   : (optional) face image for leader pillar panel
+ *
+ * NOT USED / REMOVED: Unused legacy props (seatColors, snapshotIndex) removed
+ *   to avoid confusion.
+ * ---------------------------------------------------------------------------
+ */
+function AssemblyLayout({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc = '/images/leader.png', onSeatMatricesReady }) {
   const ROWS_50 = [8, 9, 10, 11, 12];
   const ROWS_CENTER_LEFT = [3, 4, 4, 5, 5];
   const ROWS_CENTER_RIGHT = [4, 4, 5, 5, 4];
@@ -55,10 +90,10 @@ function AssemblyLayout() {
     const centerAnglesRad = centerAnglesDeg.map(d => (d * Math.PI) / 180);
     const seatRowsBySpoke = [ROWS_50, ROWS_50, ROWS_CENTER_RIGHT, ROWS_CENTER_LEFT, ROWS_50, ROWS_50];
 
-    const seatSpan = Array.from({ length: 6 }, () => Array(5).fill(0));
-    const seatSpanLinear = Array.from({ length: 6 }, () => Array(5).fill(0));
-    const benchSpan = Array.from({ length: 6 }, () => Array(5).fill(0));
-    const minBenchSpan = Array.from({ length: 6 }, () => Array(5).fill(0));
+  const seatSpan = Array.from({ length: 6 }, () => Array(5).fill(0));        // angular width occupied by chairs (radians)
+  const seatSpanLinear = Array.from({ length: 6 }, () => Array(5).fill(0));  // same but linear units for clarity/debug
+  const benchSpan = Array.from({ length: 6 }, () => Array(5).fill(0));       // adjustable bench (desk) angular span
+  const minBenchSpan = Array.from({ length: 6 }, () => Array(5).fill(0));    // minimum bench span (when fully trimmed)
 
     for (let s = 0; s < 6; s += 1) {
       for (let r = 0; r < 5; r += 1) {
@@ -78,10 +113,11 @@ function AssemblyLayout() {
 
     
 
-    // Determine target linear walkway per pair from row 5 (index 4) so that
-    // the same linear width is maintained across all rows, matching the
-    // visually "good" gap at the outer row.
-    const radiusRow5 = START_RADIUS + 4 * ROW_SPACING;
+  // Walkway width logic (Plain English):
+  //   We aim to keep consistent physical walkway widths (in meters) between
+  //   neighboring spokes across ALL rows. First we try to TRIM benches where
+  //   possible; if that can't create enough clearance we very slightly
+  //   "fan out" the spoke centerlines for that row only.
 
     // Neighbor pair specs with desired linear walkway width (explicit targets)
     const pairSpecs = [
@@ -174,7 +210,7 @@ function AssemblyLayout() {
       }
     }
 
-    const pushRow = (spokeIdx, centerRad, seats, rowIdx, keyPrefix) => {
+  const pushRow = (spokeIdx, centerRad, seats, rowIdx, keyPrefix) => {
       const radius = START_RADIUS + rowIdx * ROW_SPACING;
 
       const bSpan = benchSpan[spokeIdx][rowIdx];
@@ -210,7 +246,7 @@ function AssemblyLayout() {
         const m = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), q, new THREE.Vector3(1, 1, 1));
         wood.push(m.clone());
         fabric.push(m.clone());
-        if (SHOW_SEAT_MARKERS) {
+  if (SHOW_SEAT_MARKERS) {
           const label = `${markerSeq}`;
           markers.push(
             <group key={`mk-${keyPrefix}-${i}`} position={[x, y + 0.8, z]}>
@@ -237,12 +273,15 @@ function AssemblyLayout() {
     for (let r = 0; r < 5; r += 1) pushRow(4, anglesByRow[r][4], rows[4][r], r, `S5-R${r}`);
     for (let r = 0; r < 5; r += 1) pushRow(5, anglesByRow[r][5], rows[5][r], r, `S6-R${r}`);
 
-    // Log counts per spoke and total
+  // Development aid: log counts (safe for production, silent if console off)
     try {
       const perSpoke = seatRowsBySpoke.map(r => r.reduce((a, b) => a + b, 0));
       const total = perSpoke.reduce((a, b) => a + b, 0);
       // eslint-disable-next-line no-console
-      console.log('Seat counts per spoke:', perSpoke, 'Total:', total);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log('Seat counts per spoke:', perSpoke, 'Total:', total);
+      }
     } catch (e) {
       // ignore
     }
@@ -251,7 +290,7 @@ function AssemblyLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { woodGeometry, fabricGeometry } = useMemo(() => createMergedChairGeometries(), []);
+  const { woodGeometry, fabricGeometry } = useMemo(() => createMergedChairGeometries(), []); // executed once
   const woodRef = useRef(null);
   const fabricRef = useRef(null);
 
@@ -264,13 +303,38 @@ function AssemblyLayout() {
       for (let i = 0; i < fabricMatrices.length; i += 1) fabricRef.current.setMatrixAt(i, fabricMatrices[i]);
       fabricRef.current.instanceMatrix.needsUpdate = true;
     }
+  if (onSeatMatricesReady) onSeatMatricesReady(fabricMatrices);
   }, [woodMatrices, fabricMatrices]);
+
+  // Extract leader matrix if requested and exists
+  let leaderMatrix = null;
+  if (leaderSeatIndex != null && fabricMatrices[leaderSeatIndex]) leaderMatrix = fabricMatrices[leaderSeatIndex];
 
   return (
     <group>
       {benches}
-      <instancedMesh ref={woodRef} args={[woodGeometry, WOOD_MATERIAL, woodMatrices.length]} />
-      <instancedMesh ref={fabricRef} args={[fabricGeometry, FABRIC_MATERIAL, fabricMatrices.length]} />
+  <instancedMesh ref={woodRef} args={[woodGeometry, WOOD_MATERIAL, woodMatrices.length]} frustumCulled={false} />
+  <instancedMesh ref={fabricRef} args={[fabricGeometry, FABRIC_MATERIAL, fabricMatrices.length]} frustumCulled={false} />
+      
+  {/* Holograms removed: using photo face layer instead */}
+      {/* Prototype single face card on seat index 0 */}
+      {/* Multi-seat face layer (prototype). Provide list of image sources; cycles through them. */}
+      {fabricMatrices.length > 0 && (
+        <SeatFacesLayer
+          matrices={fabricMatrices}
+          seatHexColors={seatHexColors}
+          imageSources={['/images/leader.png','/images/leader2.png','/images/leader3.png','/images/leader4.png','/images/leader5.png']}
+          randomize
+          seed={20250904}
+        />
+      )}
+  {leaderMatrix && (
+    <LeaderPillar
+      matrix={leaderMatrix}
+      partyColor={(seatHexColors && seatHexColors[leaderSeatIndex]) || '#ffffff'}
+      faceSrc={leaderFaceSrc}
+    />
+  )}
       {SHOW_SEAT_MARKERS && seatMarkers}
     </group>
   );

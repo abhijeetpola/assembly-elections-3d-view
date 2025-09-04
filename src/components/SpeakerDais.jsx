@@ -1,6 +1,6 @@
 import React from 'react';
 
-function SpeakerDais() {
+const SpeakerDais = React.memo(function SpeakerDais() {
   return (
     // ========================================
     // MAIN CONTAINER: Speaker's Dais Assembly
@@ -184,6 +184,6 @@ function SpeakerDais() {
       
     </group>
   );
-}
+});
 
 export default SpeakerDais;
