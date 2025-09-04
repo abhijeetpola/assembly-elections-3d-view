@@ -46,6 +46,9 @@
     ]
   }
   ,
+  "engines": {
+    "node": ">=20 <21"
+  },
   "devDependencies": {
     "serve": "^14.2.1",
     "netlify-cli": "^17.0.0"
