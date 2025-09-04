@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import EnhancedCameraControls from './components/EnhancedCameraControls';
@@ -105,6 +105,14 @@ function App() {
       setActivePreset('speaker');
     }
   };
+
+  // Auto-apply gallery preset on first availability (default view)
+  useEffect(() => {
+    if (camControls && sphere && activePreset == null) {
+      applyPreset('gallery');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [camControls, sphere, activePreset]);
 
   return (
     <div className="app-container">
