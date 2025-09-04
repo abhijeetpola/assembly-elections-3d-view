@@ -55,7 +55,8 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
     };
   }, [scene]);
 
-  // Initial perspective camera positioning & framing
+  // Initial perspective camera positioning & framing (run once; onReady intentionally excluded)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // Set camera to perspective values if not already
     if (camera.type !== 'PerspectiveCamera') {
@@ -87,7 +88,7 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
   if (onReady) onReady(cc);
 
     return () => cc.dispose();
-  }, [camera, gl]);
+  }, [camera, gl]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Per-frame update
   const softAppliedRef = useRef(false);

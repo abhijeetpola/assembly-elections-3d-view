@@ -294,6 +294,8 @@ function AssemblyLayout({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc =
   const woodRef = useRef(null);
   const fabricRef = useRef(null);
 
+  // onSeatMatricesReady intentionally excluded from deps to avoid re-running on every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (woodRef.current && woodMatrices.length) {
       for (let i = 0; i < woodMatrices.length; i += 1) woodRef.current.setMatrixAt(i, woodMatrices[i]);
@@ -303,8 +305,8 @@ function AssemblyLayout({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc =
       for (let i = 0; i < fabricMatrices.length; i += 1) fabricRef.current.setMatrixAt(i, fabricMatrices[i]);
       fabricRef.current.instanceMatrix.needsUpdate = true;
     }
-  if (onSeatMatricesReady) onSeatMatricesReady(fabricMatrices);
-  }, [woodMatrices, fabricMatrices]);
+    if (onSeatMatricesReady) onSeatMatricesReady(fabricMatrices);
+  }, [woodMatrices, fabricMatrices]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Extract leader matrix if requested and exists
   let leaderMatrix = null;
