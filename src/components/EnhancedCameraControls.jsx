@@ -23,6 +23,13 @@ const POLAR_MAX = 1.15;            // radians (~65.9°)
 const AZIMUTH_MIN = -1.83;         // ~ -105°
 const AZIMUTH_MAX = 1.83;          // ~ +105°
 
+// Enhanced close-inspection behavior constants
+const MIN_DISTANCE = 0.5;          // absolute clamp (hard) how close camera center can get to target
+const SOFT_FLOOR = 0.6;            // threshold to begin protective lateral offset to avoid clipping face cards
+const SIDE_OFFSET = 0.12;          // meters to nudge sideways at soft floor for better parallax (world-space)
+const CLOSE_TOGGLE_DISTANCE = 5;   // below this distance we disable dollyToCursor to prevent jitter / drift
+const FOCUS_DISTANCE = 6;          // distance used when focusing a seat (double-click / refocus)
+
 export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) {
   const { camera, gl, scene, size } = useThree();
   const controlsRef = useRef(null);
@@ -31,6 +38,8 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
   const focusedSeat = useRef(null);
 
   // Create a subtle focus ring (circle) that we can move to focused seat
+  // onReady excluded from deps: we only want to call once on mount for stable camera controls.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const ringGeom = new THREE.RingGeometry(0.45, 0.5, 24);
     const ringMat = new THREE.MeshBasicMaterial({ color: 0xffff66, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
@@ -53,7 +62,7 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
       // (In Canvas we will instantiate perspective explicitly)
     }
     camera.position.set(0, 70, 78); // elevated & back a bit for opening shot
-  camera.near = 0.05; // allow very close zoom without clipping
+  camera.near = 0.02; // allow very close zoom without clipping (reduced for tighter hologram approach)
     camera.far = 2000;
     camera.updateProjectionMatrix();
 
@@ -62,7 +71,7 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
   cc.smoothTime = 0.08; // crisper stop
   cc.draggingDampingFactor = 0.18;
   cc.infinityDolly = false;
-  cc.minDistance = 1.7;  // closer inspection of seats
+  cc.minDistance = MIN_DISTANCE;  // allow much closer inspection of seats
     cc.maxDistance = 240; // how far you can pull out
     cc.polarAngleMin = POLAR_MIN;
     cc.polarAngleMax = POLAR_MAX;
@@ -81,10 +90,41 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
   }, [camera, gl]);
 
   // Per-frame update
+  const softAppliedRef = useRef(false);
+
   useFrame((_, delta) => {
     const cc = controlsRef.current;
-    if (cc) cc.update(delta);
-    // Pulse focus ring
+    if (cc) {
+      // Dynamic dolly-to-cursor toggle for stability when extremely close
+      const dist = cc.distance;
+      const shouldDolly = dist > CLOSE_TOGGLE_DISTANCE;
+      if (cc.dollyToCursor !== shouldDolly) {
+        cc.dollyToCursor = shouldDolly;
+      }
+
+      // Soft floor protective lateral nudge (only once per entry below threshold)
+      if (dist < SOFT_FLOOR) {
+        if (!softAppliedRef.current) {
+          const target = new THREE.Vector3();
+          if (cc.getTarget) cc.getTarget(target); else target.copy(cc._target || new THREE.Vector3()); // fallback
+          const camPos = camera.position.clone();
+          const dir = camPos.clone().sub(target).normalize();
+          const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0)).normalize();
+          camPos.addScaledVector(right, SIDE_OFFSET);
+          if (camPos.y < 0.5) camPos.y = 0.5; // keep above floor plane
+          // Maintain look at target without animation (prevents perceptible snap loop)
+          cc.setLookAt(camPos.x, camPos.y, camPos.z, target.x, target.y, target.z, false);
+          softAppliedRef.current = true;
+        }
+      } else if (softAppliedRef.current) {
+        // Reset flag once user pulls back out
+        softAppliedRef.current = false;
+      }
+
+      cc.update(delta);
+    }
+
+    // Pulse focus ring (independent of controls existence)
     const ring = focusRingRef.current;
     if (ring && ring.visible) {
       const t = performance.now() * 0.002;
@@ -129,7 +169,7 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
 
   const camDir = new THREE.Vector3(0, 0.4, 1).normalize();
     // Desired camera offset relative to seat (higher y fraction for a top perspective)
-    const distance = 12; // baseline viewing distance
+  const distance = FOCUS_DISTANCE; // closer baseline viewing distance for sharper engagement
     const target = seatPos.clone().add(new THREE.Vector3(0, 1.2, 0));
     const camPos = target.clone().add(camDir.clone().multiplyScalar(distance));
 
@@ -158,7 +198,7 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
         const seatPos = new THREE.Vector3().setFromMatrixPosition(m);
         const target = seatPos.clone().add(new THREE.Vector3(0, 1.2, 0));
         const camDir = new THREE.Vector3(0, 0.4, 1).normalize();
-        const distance = 12;
+  const distance = FOCUS_DISTANCE;
         const camPos = target.clone().add(camDir.clone().multiplyScalar(distance));
         controlsRef.current.setLookAt(camPos.x, camPos.y, camPos.z, target.x, target.y, target.z, true);
       }
