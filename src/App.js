@@ -5,7 +5,11 @@ import EnhancedCameraControls from './components/EnhancedCameraControls';
 import './App.css';
 import StudioEnvironment from './components/StudioEnvironment';
 import SpeakerDais from './components/SpeakerDais';
-import AssemblyLayout from './components/AssemblyLayout';
+import Floor from './components/Floor';
+import BackstageWall from './components/BackstageWall';
+import TieredPlatforms from './components/TieredPlatforms';
+// import AssemblyLayout from './components/AssemblyLayout';
+import AssemblyLayout from './components/AssemblyLayoutV2';
 import ResultsLegend from './components/ResultsLegend';
 import LeaderDetailOverlay from './components/LeaderDetailOverlay';
 import SpeakerChairIcon from './components/icons/SpeakerChairIcon';
@@ -157,11 +161,17 @@ function App() {
             <EnhancedCameraControls getSeatWorldMatrix={() => ({ matrices: seatMatrices })} onReady={(cc) => setCamControls(cc)} />
             {/* Professional Studio Environment */}
             <StudioEnvironment />
+            {/* Floor */}
+            <Floor />
+            {/* Backstage Wall */}
+            <BackstageWall />
+            {/* Tiered Platforms (semicircular stadium steps) */}
+            <TieredPlatforms />
             {/* Speaker's Dais */}
             <SpeakerDais />
             {/* Seat / benches assembly (takes computed per-seat colors for wins/leads) */}
-            {/* Vertical offset wrapper to nudge assembly upward visually */}
-            <group position={[0,5,0]}>
+            {/* Assembly grounded at Y=0 (same level as floor and speaker dais) */}
+            <group position={[0,0,0]}>
               <AssemblyLayout
                 seatHexColors={seatHexColors}
                 onSeatMatricesReady={(mats) => { setSeatMatrices(mats); const sp = computeSphere(mats); setSphere(sp); }}
