@@ -140,7 +140,6 @@ export function createMergedChairGeometries() {
     const backWidth = 1.0;
     const backHeight = 1.1;
     const backThickness = 0.12;
-    const cushionHeight = 0.12;
     const cushionDepth = 1.0;
     const backrestReclineAngle = 10 * Math.PI / 180; // 10 degrees backward tilt
     
@@ -229,9 +228,7 @@ export function createMergedChairGeometries() {
     const trimWidth = 1.1;
     const trimHeight = 0.1;
     const trimDepth = 0.15;
-    const cushionHeight = 0.12;
     const backrestHeight = 1.1;
-    const backrestThickness = 0.12; // Backrest cushion thickness
     const cushionDepth = 1.0;
     const backrestReclineAngle = 10 * Math.PI / 180; // Same as backrest
     

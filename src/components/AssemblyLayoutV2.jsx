@@ -67,7 +67,8 @@ function AssemblyLayoutV2({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc
   // Parallel walkways (fixed angular width)
   const WALKWAY_ANGULAR = 5 * Math.PI / 180; // 5 degrees
 
-  // Validate total seats
+  // Validate total seats (243 expected)
+  // eslint-disable-next-line no-unused-vars
   const totalSeats = ROWS_PER_SPOKE.reduce((total, spoke) => 
     total + spoke.reduce((a,b) => a+b, 0), 0
   );
@@ -113,29 +114,14 @@ function AssemblyLayoutV2({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc
   const BENCH_HEIGHT = 1.25;       // Desktop height: ~28cm above armrests (prominent parliamentary desk)
   const BENCH_DEPTH = 1.4;
   const CHAIR_BACK_OFFSET = 0.9;
-  const CHAIR_ELEVATION_STEP = 0.4;
   const SPEAKER_TARGET = new THREE.Vector3(0, 0, 0);
 
   // PLATFORM DIMENSIONS FOR EACH ROW (for reference)
-  for (let row = 1; row <= 5; row++) {
-    const rowIdx = row - 1;
-    
-    // Row center radius (where desks/chairs are positioned)
-    const rowCenterRadius = START_RADIUS + rowIdx * ROW_SPACING;
-    
-    // Platform should extend from BEHIND desks to BEFORE next row
-    // Inner radius: Behind the desks (desk back + walking space)
-    const deskBackRadius = rowCenterRadius + BENCH_DEPTH / 2;
-    const platformInnerRadius = deskBackRadius + 0.5; // 0.5m walking space behind desk
-    
-    // Outer radius: Just before next row starts (or end of assembly for last row)
-    const nextRowCenterRadius = START_RADIUS + row * ROW_SPACING;
-    const platformOuterRadius = (row < 5) 
-      ? nextRowCenterRadius - BENCH_DEPTH / 2 - 0.2 // Stop before next row's desk
-      : nextRowCenterRadius + 1.0; // Extra space for last row
-    
-    // Elevation height (top of platform surface)
-    const platformHeight = row * CHAIR_ELEVATION_STEP;
+  // These calculations are kept for documentation but not actively used
+  // eslint-disable-next-line no-lone-blocks
+  {
+    // Platform dimension calculations moved to TieredPlatforms.jsx
+    // Keeping this block as reference for future modifications
   }
 
   const { benches, woodMatrices, fabricMatrices} = useMemo(() => {
@@ -422,7 +408,7 @@ function AssemblyLayoutV2({ seatHexColors, leaderSeatIndex = null, leaderFaceSrc
       }
       }
     }
-    
+
   return { benches: benchElems, woodMatrices: wood, fabricMatrices: fabric };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seatHexColors]); // Only recompute if colors change (SPOKE_POSITIONS, ROWS_PER_SPOKE are constants)
