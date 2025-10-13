@@ -57,7 +57,7 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
 
     const cc = new CameraControls(camera, gl.domElement);
   cc.dollyToCursor = true;
-  cc.smoothTime = 0.08; // crisper stop
+  cc.smoothTime = 1.0; // Ultra slow, very cinematic transitions
   cc.draggingDampingFactor = 0.18;
   cc.infinityDolly = false;
   cc.minDistance = MIN_DISTANCE;  // allow much closer inspection of seats
@@ -191,10 +191,27 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
         const camPos = target.clone().add(camDir.clone().multiplyScalar(distance));
         controlsRef.current.setLookAt(camPos.x, camPos.y, camPos.z, target.x, target.y, target.z, true);
       }
+      
+      // Log camera position (press 'L' key)
+      if ((e.key === 'l' || e.key === 'L') && controlsRef.current) {
+        const pos = camera.position;
+        const target = new THREE.Vector3();
+        controlsRef.current.getTarget(target);
+        
+        console.log('═══════════════════════════════════════');
+        console.log('📍 CAMERA POSITION:');
+        console.log(`Position: [${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)}]`);
+        console.log(`LookAt Target: [${target.x.toFixed(2)}, ${target.y.toFixed(2)}, ${target.z.toFixed(2)}]`);
+        console.log('');
+        console.log('Copy-paste format:');
+        console.log(`position: new THREE.Vector3(${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)})`);
+        console.log(`lookAt: new THREE.Vector3(${target.x.toFixed(2)}, ${target.y.toFixed(2)}, ${target.z.toFixed(2)})`);
+        console.log('═══════════════════════════════════════');
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [getSeatWorldMatrix]);
+  }, [camera, getSeatWorldMatrix]);
 
   useEffect(() => {
     const dom = gl.domElement;

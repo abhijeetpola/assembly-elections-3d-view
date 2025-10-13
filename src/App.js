@@ -8,6 +8,7 @@ import SpeakerDais from './components/SpeakerDais';
 import Floor from './components/Floor';
 import BackstageWall from './components/BackstageWall';
 import TieredPlatforms from './components/TieredPlatforms';
+import CameraViewpoints from './components/CameraViewpoints';
 // import AssemblyLayout from './components/AssemblyLayout';
 import AssemblyLayout from './components/AssemblyLayoutV2';
 import ResultsLegend from './components/ResultsLegend';
@@ -161,6 +162,8 @@ function App() {
             <EnhancedCameraControls getSeatWorldMatrix={() => ({ matrices: seatMatrices })} onReady={(cc) => setCamControls(cc)} />
             {/* Professional Studio Environment */}
             <StudioEnvironment />
+            {/* Camera Viewpoints (corner positions) */}
+            <CameraViewpoints cameraControls={camControls} />
             {/* Floor */}
             <Floor />
             {/* Backstage Wall */}

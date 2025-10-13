@@ -5,8 +5,11 @@ import React from 'react';
 // ========================================
 const DAIS_CONFIG = {
   // Main container position
-  position: [0, 0, -10],
+  position: [0, 0, -6],  // Moved 4m forward toward assembly
   rotation: [0, Math.PI, 0],
+  
+  // Backstage wall position (matches BackstageWall.jsx wallZ)
+  backstageWallZ: -16,  // Wall also moves forward by 4m (was -20, now -16)
   
   // Platform (old flat base - will be removed/replaced)
   platform: {
@@ -16,12 +19,16 @@ const DAIS_CONFIG = {
     color: 0x654321,
   },
   
-  // Chair Platform (elevated dais) - STEP 2
+  // Chair Platform (elevated dais)
+  // Parent group at world Z=-10, wall at world Z=-20 (10m distance)
+  // Due to 180° rotation: local +Z goes to world -Z
+  // Platform extends 10m backward in local coords → 10m backward in world
+  // Depth: 10m, Center: +5m (local)
   chairPlatform: {
     width: 8.0,       // 8m wide - stairs start at X=±4m
-    depth: 3.0,       // Deep enough for chair
+    depth: 10,        // Reaches backstage wall at world Z=-20 (10m from parent)
     height: 2.25,     // 2.25m tall (achieves 2.7m seat elevation)
-    offsetZ: 1.5,     // Positioned so front edge touches table back edge at Z=0
+    offsetZ: 5,       // Centered between 0 and 10
     color: 0x654321,  // Dark wood/stone color
   },
   

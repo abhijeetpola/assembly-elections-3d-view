@@ -49,7 +49,7 @@ const BackstageWall = React.memo(function BackstageWall() {
     return new THREE.BoxGeometry(width, height, thickness);
   }, []);
 
-  const wallZ = -20;  // 10m behind speaker chair (which is at Z=-10)
+  const wallZ = -16;  // 10m behind speaker chair (which is now at Z=-6)
   
   return (
     <group>

@@ -17,7 +17,7 @@ const Floor = React.memo(function Floor() {
     
     // PART 2: Rectangular speaker/backstage area
     const rectWidth = semicircleRadius * 2;  // Match semicircle diameter = 109m
-    const rectDepth = 20.5;   // End at wall position (Z=-20m) + 0.5m margin
+    const rectDepth = 16.5;   // End at backstage wall position (Z=-16m) + 0.5m margin
     
     const rectangleShape = new THREE.Shape();
     rectangleShape.moveTo(-rectWidth / 2, 0);           // Bottom-left at Z=0
