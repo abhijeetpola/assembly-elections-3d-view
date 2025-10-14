@@ -11,7 +11,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import CameraControls from 'camera-controls';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
-import { POLAR_MIN, POLAR_MAX, AZIMUTH_MIN, AZIMUTH_MAX, MIN_DISTANCE, SOFT_FLOOR, SIDE_OFFSET, CLOSE_TOGGLE_DISTANCE, FOCUS_DISTANCE } from '../config/camera';
+import { POLAR_MIN, POLAR_MAX, AZIMUTH_MIN, AZIMUTH_MAX, MIN_DISTANCE, SOFT_FLOOR, SIDE_OFFSET, CLOSE_TOGGLE_DISTANCE, FOCUS_DISTANCE, CAMERA_BOUNDARIES } from '../config/camera';
 
 CameraControls.install({ THREE });
 
@@ -66,6 +66,7 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
     cc.polarAngleMax = POLAR_MAX;
     cc.azimuthAngleMin = AZIMUTH_MIN;
     cc.azimuthAngleMax = AZIMUTH_MAX;
+    // Note: Azimuth angles will be updated dynamically based on camera position in useFrame
   cc.verticalDragToForward = false; // disable forward lurch
     cc.saveState();
     controlsRef.current = cc;
@@ -110,7 +111,61 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
         softAppliedRef.current = false;
       }
 
+      // DYNAMIC ROTATION LIMITS - Restrict based on camera position
+      // Prevent camera from looking through walls
+      const pos = camera.position;
+      
+      // Calculate angle from assembly center to camera
+      const dx = pos.x - CAMERA_BOUNDARIES.PERIMETER_CENTER.x;
+      const dz = pos.z - CAMERA_BOUNDARIES.PERIMETER_CENTER.z;
+      const angleToCamera = Math.atan2(dx, dz);
+      
+      // Allow ±90° rotation from facing inward (total 180° view)
+      const inwardAngle = angleToCamera + Math.PI; // Angle pointing toward center
+      cc.azimuthAngleMin = inwardAngle - Math.PI / 2;  // -90° from inward
+      cc.azimuthAngleMax = inwardAngle + Math.PI / 2;  // +90° from inward
+
       cc.update(delta);
+      
+      // BOUNDARY ENFORCEMENT - Keep camera inside chamber
+      let needsCorrection = false;
+      const correctedPos = pos.clone();
+      
+      // 1. Backstage wall boundary (Z limit)
+      if (correctedPos.z < CAMERA_BOUNDARIES.MAX_BACK_Z) {
+        correctedPos.z = CAMERA_BOUNDARIES.MAX_BACK_Z;
+        needsCorrection = true;
+      }
+      
+      // 2. Perimeter wall boundary (horizontal radius from center)
+      const horizontalDist = Math.sqrt(dx * dx + dz * dz);
+      
+      if (horizontalDist > CAMERA_BOUNDARIES.PERIMETER_RADIUS) {
+        // Push camera back inside perimeter
+        const scale = CAMERA_BOUNDARIES.PERIMETER_RADIUS / horizontalDist;
+        correctedPos.x = CAMERA_BOUNDARIES.PERIMETER_CENTER.x + dx * scale;
+        correctedPos.z = CAMERA_BOUNDARIES.PERIMETER_CENTER.z + dz * scale;
+        needsCorrection = true;
+      }
+      
+      // 3. Floor boundary (Y minimum)
+      if (correctedPos.y < CAMERA_BOUNDARIES.MIN_HEIGHT) {
+        correctedPos.y = CAMERA_BOUNDARIES.MIN_HEIGHT;
+        needsCorrection = true;
+      }
+      
+      // 4. Ceiling boundary (Y maximum)
+      if (correctedPos.y > CAMERA_BOUNDARIES.MAX_HEIGHT) {
+        correctedPos.y = CAMERA_BOUNDARIES.MAX_HEIGHT;
+        needsCorrection = true;
+      }
+      
+      // Apply correction if needed
+      if (needsCorrection) {
+        const target = new THREE.Vector3();
+        if (cc.getTarget) cc.getTarget(target); else target.copy(cc._target || new THREE.Vector3());
+        cc.setLookAt(correctedPos.x, correctedPos.y, correctedPos.z, target.x, target.y, target.z, false);
+      }
     }
 
     // Pulse focus ring (independent of controls existence)
