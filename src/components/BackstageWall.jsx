@@ -1,7 +1,24 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { useThree, useFrame } from '@react-three/fiber';
 
 const BackstageWall = React.memo(function BackstageWall() {
+  const { camera } = useThree();
+  const groupRef = useRef();
+  
+  // Dynamic visibility based on camera position
+  // Hide backstage wall when camera is in gallery zone (behind wall)
+  // This prevents wall from obstructing assembly view
+  useFrame(() => {
+    if (groupRef.current) {
+      const cameraZ = camera.position.z;
+      const BACKSTAGE_THRESHOLD = -14; // Backstage wall position
+      
+      // Show wall when camera is IN FRONT of wall (Z > -14)
+      // Hide wall when camera is BEHIND wall in gallery zone (Z < -14)
+      groupRef.current.visible = cameraZ > BACKSTAGE_THRESHOLD;
+    }
+  });
   const width = 109;  // Full wall width
   const height = 20;
   const thickness = 0.3;
@@ -52,7 +69,7 @@ const BackstageWall = React.memo(function BackstageWall() {
   const wallZ = -16;  // 10m behind speaker chair (which is now at Z=-6)
   
   return (
-    <group>
+    <group ref={groupRef}>
       {/* FRONT SIDE (facing speaker/assembly) */}
       
       {/* Center panel - Teal/Green (PROTRUDING 2m forward) */}

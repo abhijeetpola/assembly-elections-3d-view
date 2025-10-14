@@ -61,7 +61,7 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
   cc.draggingDampingFactor = 0.18;
   cc.infinityDolly = false;
   cc.minDistance = MIN_DISTANCE;  // allow much closer inspection of seats
-    cc.maxDistance = 240; // how far you can pull out
+    cc.maxDistance = CAMERA_BOUNDARIES.CAMERA_RADIUS * 1.5;  // 120m (80 * 1.5) - allows zoom out to camera perimeter
     cc.polarAngleMin = POLAR_MIN;
     cc.polarAngleMax = POLAR_MAX;
     cc.azimuthAngleMin = AZIMUTH_MIN;
@@ -127,40 +127,87 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
 
       cc.update(delta);
       
-      // BOUNDARY ENFORCEMENT - Keep camera inside chamber
+      // DUAL-PERIMETER BOUNDARY ENFORCEMENT
+      // Visual boundaries: Where walls exist (zoom IN limit)
+      // Camera boundaries: Where camera can go (zoom OUT limit)
+      
       let needsCorrection = false;
       const correctedPos = pos.clone();
       
-      // 1. Backstage wall boundary (Z limit)
-      if (correctedPos.z < CAMERA_BOUNDARIES.MAX_BACK_Z) {
-        correctedPos.z = CAMERA_BOUNDARIES.MAX_BACK_Z;
+      // 1. BACKSTAGE WALL BOUNDARIES (Z-axis)
+      // Zoom IN: Stop at visual wall (teal panel at -14m)
+      // Zoom OUT: Stop at camera limit (-50m)
+      if (correctedPos.z < CAMERA_BOUNDARIES.CAMERA_BACK_Z) {
+        correctedPos.z = CAMERA_BOUNDARIES.CAMERA_BACK_Z;  // -50m limit
         needsCorrection = true;
       }
+      // Note: No forward limit - camera can go in front of assembly
       
-      // 2. Perimeter wall boundary (horizontal radius from center)
+      // 2. PERIMETER WALL BOUNDARIES (Horizontal radius from center)
+      // Zoom IN: Stop at visual perimeter (35m)
+      // Zoom OUT: Stop at camera perimeter (80m)
       const horizontalDist = Math.sqrt(dx * dx + dz * dz);
       
-      if (horizontalDist > CAMERA_BOUNDARIES.PERIMETER_RADIUS) {
-        // Push camera back inside perimeter
-        const scale = CAMERA_BOUNDARIES.PERIMETER_RADIUS / horizontalDist;
+      // Zoom OUT limit: Can't go beyond camera perimeter (80m)
+      if (horizontalDist > CAMERA_BOUNDARIES.CAMERA_RADIUS) {
+        const scale = CAMERA_BOUNDARIES.CAMERA_RADIUS / horizontalDist;
         correctedPos.x = CAMERA_BOUNDARIES.PERIMETER_CENTER.x + dx * scale;
         correctedPos.z = CAMERA_BOUNDARIES.PERIMETER_CENTER.z + dz * scale;
         needsCorrection = true;
       }
       
-      // 3. Floor boundary (Y minimum)
+      // Zoom IN limit: For positions behind assembly, stop at visual perimeter (35m)
+      // Only enforce when camera is in the "gallery" zone (behind assembly, Z > 10)
+      if (correctedPos.z > 10 && horizontalDist < CAMERA_BOUNDARIES.VISUAL_RADIUS) {
+        const scale = CAMERA_BOUNDARIES.VISUAL_RADIUS / horizontalDist;
+        correctedPos.x = CAMERA_BOUNDARIES.PERIMETER_CENTER.x + dx * scale;
+        correctedPos.z = CAMERA_BOUNDARIES.PERIMETER_CENTER.z + dz * scale;
+        needsCorrection = true;
+      }
+      
+      // 3. FLOOR BOUNDARY (Y minimum)
       if (correctedPos.y < CAMERA_BOUNDARIES.MIN_HEIGHT) {
         correctedPos.y = CAMERA_BOUNDARIES.MIN_HEIGHT;
         needsCorrection = true;
       }
       
-      // 4. Ceiling boundary (Y maximum)
+      // 4. CEILING BOUNDARY (Y maximum)
       if (correctedPos.y > CAMERA_BOUNDARIES.MAX_HEIGHT) {
         correctedPos.y = CAMERA_BOUNDARIES.MAX_HEIGHT;
         needsCorrection = true;
       }
       
-      // Apply correction if needed
+      // 5. PLATFORM COLLISION - Prevent camera from going inside tiered platforms
+      // Calculate horizontal distance from assembly center for platform detection
+      const platformDist = horizontalDist;  // Reuse calculated distance
+      
+      // Check if camera is within platform radius range (15.3m to VISUAL_RADIUS = 35m)
+      // and in the semicircular assembly area (positive Z values, in front of backstage)
+      if (platformDist >= 15.3 && platformDist <= CAMERA_BOUNDARIES.VISUAL_RADIUS && correctedPos.z > 0) {
+        // Determine platform height based on radial distance
+        let platformHeight = 0;
+        
+        if (platformDist >= 15.3 && platformDist < 18.8) {
+          platformHeight = 0.3;  // Row 1
+        } else if (platformDist >= 18.8 && platformDist < 22.3) {
+          platformHeight = 0.7;  // Row 2
+        } else if (platformDist >= 22.3 && platformDist < 25.8) {
+          platformHeight = 1.1;  // Row 3
+        } else if (platformDist >= 25.8 && platformDist < 29.3) {
+          platformHeight = 1.5;  // Row 4
+        } else if (platformDist >= 29.3 && platformDist <= CAMERA_BOUNDARIES.VISUAL_RADIUS) {
+          platformHeight = 1.9;  // Row 5 + Extension (to visual perimeter at 35m)
+        }
+        
+        // If camera is below platform top surface, push it up
+        const minHeightAbovePlatform = platformHeight + 0.5;  // 0.5m clearance above platform
+        if (correctedPos.y < minHeightAbovePlatform) {
+          correctedPos.y = minHeightAbovePlatform;
+          needsCorrection = true;
+        }
+      }
+      
+      // Apply correction if camera went out of bounds
       if (needsCorrection) {
         const target = new THREE.Vector3();
         if (cc.getTarget) cc.getTarget(target); else target.copy(cc._target || new THREE.Vector3());
@@ -247,22 +294,6 @@ export default function EnhancedCameraControls({ getSeatWorldMatrix, onReady }) 
         controlsRef.current.setLookAt(camPos.x, camPos.y, camPos.z, target.x, target.y, target.z, true);
       }
       
-      // Log camera position (press 'L' key)
-      if ((e.key === 'l' || e.key === 'L') && controlsRef.current) {
-        const pos = camera.position;
-        const target = new THREE.Vector3();
-        controlsRef.current.getTarget(target);
-        
-        console.log('═══════════════════════════════════════');
-        console.log('📍 CAMERA POSITION:');
-        console.log(`Position: [${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)}]`);
-        console.log(`LookAt Target: [${target.x.toFixed(2)}, ${target.y.toFixed(2)}, ${target.z.toFixed(2)}]`);
-        console.log('');
-        console.log('Copy-paste format:');
-        console.log(`position: new THREE.Vector3(${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)})`);
-        console.log(`lookAt: new THREE.Vector3(${target.x.toFixed(2)}, ${target.y.toFixed(2)}, ${target.z.toFixed(2)})`);
-        console.log('═══════════════════════════════════════');
-      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three-stdlib';
+import { PERIMETER_RADIUS } from '../config/camera';
 
 const Floor = React.memo(function Floor() {
   const floorGeometry = useMemo(() => {
     // PART 1: Semicircular assembly area
-    const semicircleRadius = 54.5;  // Assembly area (Row 5 + 20m)
+    const semicircleRadius = PERIMETER_RADIUS;  // Use shared constant (dynamic chamber size)
     const segments = 64;
     
     const semicircleShape = new THREE.Shape();

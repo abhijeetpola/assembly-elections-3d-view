@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
+import { PERIMETER_RADIUS } from '../config/camera';
 
 // Each tier is a SOLID BLOCK from ground up to its height
 // Platform dimensions: Cover ENTIRE row area (desks + chairs + walking space)
@@ -39,8 +40,13 @@ const TIERS = [
   { innerR: 25.8, outerR: 29.3, height: 1.5, yOffset: 1.5 },
   
   // Row 5: Desk center 30.0m, DESK FRONT at 29.3m
-  // Platform: 29.3m (desk front) to end of assembly
+  // Platform: 29.3m (desk front) to end of seating area
   { innerR: 29.3, outerR: 35.0, height: 1.9, yOffset: 1.9 },
+  
+  // Row 5 Extension: Gallery walkway from seating area to perimeter wall
+  // ONLY extends the back semicircle arc (not the sides near Spoke 1/6)
+  // Dynamic: automatically adjusts when PERIMETER_RADIUS changes
+  { innerR: 35.0, outerR: PERIMETER_RADIUS, height: 1.9, yOffset: 1.9 },
 ];
 
 const START_ANGLE = 0;
